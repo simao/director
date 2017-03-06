@@ -9,6 +9,8 @@ import com.advancedtelematic.libtuf.data.TufDataType.{ClientSignature, Signature
 import io.circe.Encoder
 import io.circe.syntax._
 
+import org.slf4j.LoggerFactory
+
 import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
@@ -22,6 +24,8 @@ object Verifier {
 object Verify {
   import Verifier.Verifier
 
+  private lazy val _log = LoggerFactory.getLogger(this.getClass)
+
   def checkSigned[T](what: SignedPayload[T], checkSignature: Verifier) (implicit encoder: Encoder[T]): Try[T] = {
     val data = what.signed.asJson.canonical.getBytes
 
@@ -30,7 +34,11 @@ object Verify {
       case Seq() => Success(what.signed)
       case sig +: xs => checkSignature(sig.toSignature, data) match {
         case Success(b) if b => go(xs)
-        case Success(b) => Failure(Errors.SignatureNotValid)
+        case Success(b) => {
+          _log.error(s"signature don't verify: $sig")
+          // Failure(Errors.SignatureNotValid)
+          go(xs)
+        }
         case Failure(err) => Failure(err)
       }
     }
