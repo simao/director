@@ -3,20 +3,20 @@ package com.advancedtelematic.director.daemon
 import akka.http.scaladsl.server.Directives
 import com.advancedtelematic.director.db.SignedRoleMigration
 import com.advancedtelematic.director.{Settings, VersionInfo}
-import com.advancedtelematic.libats.http.BootApp
-import com.advancedtelematic.libats.slick.db.DatabaseConfig
+import com.advancedtelematic.libats.http.BootAppDefaultConfig
+import com.advancedtelematic.libats.slick.db.DatabaseSupport
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 
-object SignedRolesMigrationBoot extends BootApp
+object SignedRolesMigrationBoot extends BootAppDefaultConfig
   with Directives
   with Settings
   with VersionInfo
-  with DatabaseConfig {
+  with DatabaseSupport {
 
-  implicit val _db = db
+  override val dbConfig = appConfig.getConfig("ats.director.database")
 
   val migrationF = new SignedRoleMigration().run.map { res =>
     log.info(s"Migration finished $res")
