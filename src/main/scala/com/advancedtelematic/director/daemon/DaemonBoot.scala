@@ -40,7 +40,7 @@ class DirectorDaemon(override val appConfig: Config, override val dbConfig: Conf
 
     val routes = versionHeaders(nameVersion) {
       prometheusMetricsRoutes ~
-        DbHealthResource(versionMap, healthMetrics = Seq(new BusListenerMetrics(metricRegistry))).route
+        DbHealthResource(versionMap, healthMetrics = Seq(new BusListenerMetrics(metricRegistry)), metricRegistry = metricRegistry).route
     }
 
     Http().bindAndHandle(routes, host, port)

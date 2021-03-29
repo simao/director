@@ -56,7 +56,7 @@ class DirectorBoot(override val appConfig: Config, override val dbConfig: Config
 
     val routes: Route =
       (logRequestResult("directorv2" -> requestLogLevel) & versionHeaders(nameVersion) & requestMetrics(metricRegistry) & logResponseMetrics(projectName)) {
-        DbHealthResource(versionMap, dependencies = Seq(new ServiceHealthCheck(tufUri))).route ~
+        DbHealthResource(versionMap, dependencies = Seq(new ServiceHealthCheck(tufUri)), metricRegistry = metricRegistry).route ~
           tracing.traceRequests { implicit requestTracing =>
             prometheusMetricsRoutes ~
               new DirectorRoutes(keyserverClient, allowEcuReplacement).routes
