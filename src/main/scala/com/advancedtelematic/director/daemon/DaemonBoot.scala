@@ -38,7 +38,7 @@ class DirectorDaemon(override val appConfig: Config, override val dbConfig: Conf
 
     startListener[DeleteDeviceRequest](new DeleteDeviceRequestListener, new MetricsBusMonitor(metricRegistry, "director-v2-delete-device-request"))
 
-    val routes = versionHeaders(version) {
+    val routes = versionHeaders(nameVersion) {
       prometheusMetricsRoutes ~
         DbHealthResource(versionMap, healthMetrics = Seq(new BusListenerMetrics(metricRegistry))).route
     }

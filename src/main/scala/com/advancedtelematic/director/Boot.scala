@@ -46,7 +46,7 @@ class DirectorBoot(override val appConfig: Config, override val dbConfig: Config
   import system.dispatcher
 
   def bind(): Future[ServerBinding] = {
-    log.info(s"Starting $version on http://$host:$port")
+    log.info(s"Starting ${nameVersion} on http://$host:$port")
 
     lazy val tracing = Tracing.fromConfig(appConfig, projectName)
 
@@ -55,11 +55,13 @@ class DirectorBoot(override val appConfig: Config, override val dbConfig: Config
     implicit val msgPublisher = MessageBus.publisher(system, appConfig)
 
     val routes: Route =
-      DbHealthResource(versionMap, dependencies = Seq(new ServiceHealthCheck(tufUri))).route ~
-        (logRequestResult("directorv2" -> requestLogLevel) & versionHeaders(version) & requestMetrics(metricRegistry) & logResponseMetrics(projectName) & tracing.traceRequests) { implicit requestTracing =>
-          prometheusMetricsRoutes ~
-            new DirectorRoutes(keyserverClient, allowEcuReplacement).routes
-        }
+      (logRequestResult("directorv2" -> requestLogLevel) & versionHeaders(nameVersion) & requestMetrics(metricRegistry) & logResponseMetrics(projectName)) {
+        DbHealthResource(versionMap, dependencies = Seq(new ServiceHealthCheck(tufUri))).route ~
+          tracing.traceRequests { implicit requestTracing =>
+            prometheusMetricsRoutes ~
+              new DirectorRoutes(keyserverClient, allowEcuReplacement).routes
+          }
+      }
 
     Http().bindAndHandle(withConnectionMetrics(routes, metricRegistry), host, port)
   }

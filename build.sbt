@@ -13,8 +13,8 @@ libraryDependencies ++= {
   val akkaHttpV = "10.1.12"
   val scalaTestV = "3.0.8"
   val bouncyCastleV = "1.59"
-  val tufV = "0.7.1-24-g4db4c23-SNAPSHOT"
-  val libatsV = "0.4.0-15-g2b67637-SNAPSHOT"
+  val tufV = "0.7.1-23-g3ea21d4-SNAPSHOT"
+  val libatsV = "0.4.0-15-g006c435-SNAPSHOT"
 
   Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaV,
@@ -63,8 +63,12 @@ testOptions in Test ++= Seq(
 enablePlugins(BuildInfoPlugin, GitVersioning, JavaAppPackaging)
 
 buildInfoOptions += BuildInfoOption.ToMap
-
 buildInfoOptions += BuildInfoOption.BuildTime
+buildInfoObject := "AppBuildInfo"
+buildInfoPackage := "com.advancedtelematic.director"
+buildInfoUsePackageAsPath := true
+buildInfoOptions += BuildInfoOption.Traits("com.advancedtelematic.libats.boot.VersionInfoProvider")
+
 
 mainClass in Compile := Some("com.advancedtelematic.director.Boot")
 
@@ -77,15 +81,10 @@ import com.typesafe.sbt.SbtNativePackager.autoImport._
 import com.typesafe.sbt.packager.linux.LinuxPlugin.autoImport._
 
 dockerRepository in Docker := Some("advancedtelematic")
-
 packageName in Docker := packageName.value
-
 dockerUpdateLatest := true
-
 dockerAliases ++= Seq(dockerAlias.value.withTag(git.gitHeadCommit.value))
-
 defaultLinuxInstallLocation in Docker := s"/opt/${moduleName.value}"
-
 dockerCommands := Seq(
   Cmd("FROM", "advancedtelematic/alpine-jre:adoptopenjdk-jre8u262-b10"),
   ExecCmd("RUN", "mkdir", "-p", s"/var/log/${moduleName.value}"),
